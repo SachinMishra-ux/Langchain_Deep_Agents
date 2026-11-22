@@ -1,0 +1,45 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "locdata-code"
+version = "0.1.0"
+description = "LocData Code - The Autonomous AI Coding & Problem Solving Agent Harness"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "LocData AI Team" }]
+dependencies = [
+    "deepagents>=0.7.38",
+    "duckduckgo-search>=8.1.1",
+    "langchain>=1.5.0",
+    "langchain-core>=1.8.0",
+    "langchain-openai>=1.8.0",
+    "langchain-anthropic>=1.7.0",
+    "langchain-google-genai>=4.4.0",
+    "langgraph>=1.2.0",
+    "pydantic>=2.10.0",
+    "python-dotenv>=1.2.4",
+    "rich>=15.0.0",
+    "textual>=8.2.0",
+    "tomli-w>=1.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "hatchling>=1.33.0",
+]
+
+[project.scripts]
+loccode = "locdata_code.main:cli_main"
+locdata-code = "locdata_code.main:cli_main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["locdata_code"]
+
+[dependency-groups]
+dev = [
+    "build>=1.6.1",
+]
