@@ -24,6 +24,7 @@ dependencies = [
     "rich>=15.0.0",
     "textual>=8.2.0",
     "tomli-w>=1.2.0",
+    "langchain-mcp-adapters>=0.3.2",
 ]
 
 [project.optional-dependencies]

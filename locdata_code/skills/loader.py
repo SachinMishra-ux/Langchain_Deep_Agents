@@ -63,10 +63,14 @@ class SkillManager:
 
     @classmethod
     def format_skills_prompt(cls, skills: list[Skill]) -> str:
-        """Format discovered skills for inclusion in agent prompt or discovery list."""
+        """Format discovered skills with complete instructions for the agent."""
         if not skills:
             return ""
-        lines = ["\n### AVAILABLE SKILLS:"]
+        lines = ["\n### ACTIVE DOMAIN SKILLS:"]
         for s in skills:
-            lines.append(f"- **{s.name}**: {s.description}")
+            lines.append(
+                f"\n#### Skill: {s.name}\n"
+                f"**Description:** {s.description}\n"
+                f"**Instructions:**\n{s.instructions}\n"
+            )
         return "\n".join(lines)

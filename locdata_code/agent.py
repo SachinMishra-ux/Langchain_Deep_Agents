@@ -16,6 +16,7 @@ from deepagents.backends import LocalShellBackend
 
 from locdata_code.auth_store import AuthStore
 from locdata_code.config import LocDataConfig
+from locdata_code.mcp.manager import MCPManager
 from locdata_code.paths import get_project_memory_path
 from locdata_code.skills.loader import SkillManager
 from locdata_code.tools.web_search import web_search
@@ -32,6 +33,26 @@ You operate directly inside the user's workspace with full authority to read, ed
 5. **Real-Time Web Grounding (`web_search`):** When encountering unfamiliar errors, third-party libraries, or latest API specifications, use `web_search`.
 6. **Context Efficiency:** Deep Agents offloads large outputs to virtual storage. Inspect specific line ranges or grep matching patterns rather than requesting huge dumps.
 """
+
+
+# Core subagent specifications available for delegation via the `task` tool
+DEFAULT_SUBAGENTS = [
+    {
+        "name": "researcher",
+        "description": "Specialized subagent for deep web and documentation research. Performs focused investigations and returns comprehensive summaries.",
+        "system_prompt": "You are a specialized research subagent. Conduct thorough searches, gather facts, and return a clean, comprehensive synthesis. Do not stop at surface answers.",
+    },
+    {
+        "name": "code-auditor",
+        "description": "Specialized subagent for reading, auditing, and reviewing code for bugs, syntax errors, and security vulnerabilities without modifying files.",
+        "system_prompt": "You are a code audit subagent. Inspect the codebase, analyze logic flows, and report bugs or architectural flaws clearly.",
+    },
+    {
+        "name": "general-purpose",
+        "description": "General-purpose subagent for exploring directories, testing multi-step scripts, and performing delegated worker tasks in an isolated context.",
+        "system_prompt": "You are a general-purpose delegated worker subagent. Execute the assigned task and report the complete final outcome.",
+    },
+]
 
 
 def resolve_model(
@@ -64,6 +85,7 @@ def resolve_model(
             base_url=config.model.base_url or "https://token.sensenova.ai/v1",
             api_key=sensenova_key,
             temperature=config.model.temperature,
+            max_retries=5,
         )
 
     # 3. Anthropic Claude
@@ -133,6 +155,14 @@ def create_locdata_agent(
     if config.enable_web_search:
         tools.append(web_search)
 
+    # Ingest configured MCP tools
+    try:
+        mcp_tools = MCPManager.load_mcp_tools(project_root)
+        if mcp_tools:
+            tools.extend(mcp_tools)
+    except Exception:
+        pass
+
     # Assemble system instructions
     workspace_context = f"\n### WORKSPACE CONTEXT:\n- Current Workspace Root: `{project_root}`\n- Operate within this workspace. For listing and file operations, use relative paths (e.g., `.` or `./pyproject.toml`) or paths rooted at `{project_root}`.\n"
     prompt_parts = [LOCDATA_SYSTEM_PROMPT, workspace_context]
@@ -159,6 +189,7 @@ def create_locdata_agent(
         model=model,
         backend=backend,
         tools=tools,
+        subagents=DEFAULT_SUBAGENTS,
         system_prompt=full_system_prompt,
         checkpointer=checkpointer or MemorySaver(),
     )

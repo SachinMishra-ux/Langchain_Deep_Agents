@@ -1,27 +1,8 @@
 # 🧠⚡ LocData Code (`loccode`)
+
 ### *The Autonomous AI Coding & General Problem-Solving Agent Harness*
 
 <div align="center">
-
-```
-  _                 _____        _          _____          _      
- | |               |  __ \      | |        / ____|        | |     
- | |     ___   ___ | |  | | __ _| |_ __ _ | |     ___   __| | ___ 
- | |    / _ \ / __|| |  | |/ _` | __/ _` || |    / _ \ / _` |/ _ \
- | |___| (_) | (__ | |__| | (_| | || (_| || |___| (_) | (_| |  __/
- |______\___/ \___||_____/ \__,_|\__\__,_| \_____\___/ \__,_|\___|
-```
-
-[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Engine: Deep Agents](https://img.shields.io/badge/Engine-LangChain%20Deep%20Agents-green.svg)](https://github.com/langchain-ai/deepagents)
-[![Runtime: LangGraph](https://img.shields.io/badge/Runtime-LangGraph-orange.svg)](https://github.com/langchain-ai/langgraph)
-[![Tests: 10/10 Passing](https://img.shields.io/badge/Tests-10%2F10%20Passing-brightgreen.svg)]()
-
-**LocData Code** is an open-source, enterprise-grade autonomous terminal coding assistant and problem-solving harness.  
-*Just like typing `claude` opens Claude Code, typing **`loccode`** launches LocData Code directly from any directory in your terminal.*
-
-</div>
 
 ---
 
@@ -30,20 +11,20 @@
 - [Architectural Philosophy](#-architectural-philosophy)
 - [System Architecture](#-system-architecture)
   - [1. The Multi-Layer Engine Stack](#1-the-multi-layer-engine-stack)
-  - [2. Autonomous Execution & Verification Loop](#2-autonomous-execution--verification-loop)
-  - [3. Context Safety & Zero-Blowout Blob Offloading](#3-context-safety--zero-blowout-blob-offloading)
+  - [2. Autonomous Execution &amp; Verification Loop](#2-autonomous-execution--verification-loop)
+  - [3. Context Safety &amp; Zero-Blowout Blob Offloading](#3-context-safety--zero-blowout-blob-offloading)
 - [Key Features](#-key-features)
-- [Repository & Package Anatomy](#-repository--package-anatomy)
-- [Installation & Global CLI Setup](#-installation--global-cli-setup)
+- [Repository &amp; Package Anatomy](#-repository--package-anatomy)
+- [Installation &amp; Global CLI Setup](#-installation--global-cli-setup)
 - [Configuration Scopes](#-configuration-scopes)
-- [Usage & Execution Modes](#-usage--execution-modes)
+- [Usage &amp; Execution Modes](#-usage--execution-modes)
   - [1. Interactive Full-Screen TUI (`loccode`)](#1-interactive-full-screen-tui-loccode)
   - [2. Inline Terminal REPL (`loccode --repl`)](#2-inline-terminal-repl-loccode---repl)
   - [3. Headless CI/CD Mode (`loccode -x`)](#3-headless-cicd-mode-loccode--x)
 - [Slash Commands Catalog](#-slash-commands-catalog)
 - [Multi-Model Provider Support](#-multi-model-provider-support)
-- [Automated Testing & Verification](#-automated-testing--verification)
-- [Building & Publishing](#-building--publishing)
+- [Automated Testing &amp; Verification](#-automated-testing--verification)
+- [Building &amp; Publishing](#-building--publishing)
 - [License](#-license)
 
 ---
@@ -51,12 +32,14 @@
 ## 🏛️ Architectural Philosophy
 
 Standard LLM agents fail on complex engineering tasks because of four foundational bottlenecks:
+
 1. **Context Pollution:** Raw tool outputs (e.g. 10,000-line test logs or AST dumps) flood the prompt, destroying attention ("lost-in-the-middle") and escalating token costs.
 2. **Quadratic Checkpointing ($O(N^2)$):** Traditional agent graphs re-serialize accumulating message histories on every turn, causing latency degradation.
 3. **Hallucinatory File Rewrites:** Asking models to rewrite 1,000-line files to change 3 lines causes syntax loss and accidental regressions.
 4. **Execution Insecurity:** Giving unvetted shell execution directly on host developer environments poses severe blast-radius hazards.
 
 **LocData Code solves these problems through an opinionated harness:**
+
 - **Virtual Filesystem Suite:** Equipped with `ls`, `glob`, `grep`, `read_file`, and surgical exact-match `edit_file`.
 - **Blob Offloading (`_blob_offload.py`):** Automatically intercepts large tool responses, stores them on virtual storage, and injects lightweight preview pointers into the context window.
 - **Linear Checkpointing (`DeltaChannel`):** Checkpoints state in linear $O(N)$ time with periodic snapshotting.
@@ -130,12 +113,12 @@ sequenceDiagram
     Agent->>Shell: execute("pytest")
     Shell-->>VFS: Output captured (e.g. 500 lines of failure stack trace)
     VFS-->>Agent: Lightweight preview & line-pointer
-    
+  
     Agent->>VFS: grep("AssertionError", path="tests/")
     VFS-->>Agent: Exact failing line in tests/test_auth.py:42
     Agent->>VFS: read_file("tests/test_auth.py", range=[35, 55])
     VFS-->>Agent: Code context
-    
+  
     Agent->>Gate: Propose edit_file(tests/test_auth.py, target, replacement)
     alt Approval Mode = PROMPT
         Gate->>Client: Render colored diff & wait for confirmation
@@ -173,17 +156,17 @@ flowchart LR
 
 ## ✨ Key Features
 
-| Capability | Technical Mechanism | Benefit |
-|---|---|---|
-| **Terminal Integration** | Global binary `loccode` in `$PATH` | Launch with a single keystroke from any directory. |
-| **Full-Screen TUI** | [Textual](https://textual.textualize.io/) + Rich | Live streaming, syntax-highlighted code blocks, collapsible tool bubbles. |
-| **Surgical Code Editing** | `edit_file` exact-match replacement | Eliminates hallucinated code wipes and preserves existing codebases. |
-| **Multi-Provider Models** | Dynamic Model Resolver | Seamlessly connects to SenseNova, Anthropic Claude, OpenAI, Gemini, or local Ollama. |
-| **CI/CD Automation** | Headless mode (`-x` / `--json`) | Direct integration into GitHub Actions, pre-commit hooks, and deployment scripts. |
-| **Three Safety Modes** | `prompt`, `auto`, `bypass` | Granular control over file writes and bash executions. |
-| **Model Context Protocol** | `MCPManager` (`.mcp.json`) | Connects external tools and databases dynamically. |
-| **Modular Skills** | `SkillManager` (`SKILL.md`) | On-demand discovery of specialized workflows without system prompt stuffing. |
-| **Multi-Turn Persistence** | LangGraph SQLite Checkpointer | Preserves threads across terminal restarts via `--resume <session_id>`. |
+| Capability                       | Technical Mechanism                             | Benefit                                                                              |
+| -------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **Terminal Integration**   | Global binary `loccode` in `$PATH`          | Launch with a single keystroke from any directory.                                   |
+| **Full-Screen TUI**        | [Textual](https://textual.textualize.io/) + Rich | Live streaming, syntax-highlighted code blocks, collapsible tool bubbles.            |
+| **Surgical Code Editing**  | `edit_file` exact-match replacement           | Eliminates hallucinated code wipes and preserves existing codebases.                 |
+| **Multi-Provider Models**  | Dynamic Model Resolver                          | Seamlessly connects to SenseNova, Anthropic Claude, OpenAI, Gemini, or local Ollama. |
+| **CI/CD Automation**       | Headless mode (`-x` / `--json`)             | Direct integration into GitHub Actions, pre-commit hooks, and deployment scripts.    |
+| **Three Safety Modes**     | `prompt`, `auto`, `bypass`                | Granular control over file writes and bash executions.                               |
+| **Model Context Protocol** | `MCPManager` (`.mcp.json`)                  | Connects external tools and databases dynamically.                                   |
+| **Modular Skills**         | `SkillManager` (`SKILL.md`)                 | On-demand discovery of specialized workflows without system prompt stuffing.         |
+| **Multi-Turn Persistence** | LangGraph SQLite Checkpointer                   | Preserves threads across terminal restarts via `--resume <session_id>`.            |
 
 ---
 
@@ -233,7 +216,9 @@ flowchart LR
 ## 🚀 Installation & Global CLI Setup
 
 ### 1. Editable Local Install (Recommended for Development)
+
 From the repository root:
+
 ```bash
 uv pip install -e .
 # Or using pip:
@@ -241,12 +226,15 @@ pip install -e .
 ```
 
 ### 2. Global Installation as a Standalone Tool
+
 To make `loccode` executable from any terminal session without needing to activate a virtual environment:
+
 ```bash
 uv tool install --editable --force .
 ```
 
 Verify global availability:
+
 ```bash
 which loccode
 # Output: /Users/sachinmishra/.local/bin/loccode
@@ -260,6 +248,7 @@ loccode --version
 ## ⚙️ Configuration Scopes
 
 LocData Code resolves configurations hierarchically:
+
 1. **CLI Flags** (`-m`, `-a`, `--json`)
 2. **Project-Level Config** (`./.locdata/config.toml`)
 3. **Global User Config** (`~/.locdata/config.toml`)
@@ -267,6 +256,7 @@ LocData Code resolves configurations hierarchically:
 5. **System Defaults**
 
 ### Sample `~/.locdata/config.toml`:
+
 ```toml
 approval_mode = "prompt"
 enable_web_search = true
@@ -282,19 +272,25 @@ temperature = 0.2
 ## 💻 Usage & Execution Modes
 
 ### 1. Interactive Full-Screen TUI (`loccode`)
+
 Launches the full interactive terminal application:
+
 ```bash
 loccode
 ```
 
 ### 2. Inline Terminal REPL (`loccode --repl`)
+
 Launches a lightweight in-line REPL without alternate screen buffers:
+
 ```bash
 loccode --repl
 ```
 
 ### 3. Headless CI/CD Mode (`loccode -x`)
+
 Executes a task autonomously and exits with return code `0` on success, `1` on error:
+
 ```bash
 # Refactor and verify test suite
 loccode -x "Run pytest tests/ and fix any failing test assertions"
@@ -312,17 +308,17 @@ loccode -x "Inspect git status" --json
 
 Type `/` at the interactive prompt to execute commands:
 
-| Command | Aliases | Description |
-|---|---|---|
-| `/help` | `/?` | Display all available commands and argument hints |
-| `/clear` | `/reset` | Clear the current chat view and initialize a fresh thread |
-| `/approval` | | Switch execution safety mode (`prompt`, `auto`, `bypass`) |
-| `/diff` | | Inspect unstaged git changes across the project |
-| `/model` | | View or switch active LLM provider |
-| `/auth` | `/connect` | Check API credentials status |
-| `/skills` | | List active domain skills loaded from `SKILL.md` |
-| `/mcp` | | List active Model Context Protocol (MCP) servers |
-| `/exit` | `/quit`, `/q` | Exit LocData Code |
+| Command       | Aliases           | Description                                                     |
+| ------------- | ----------------- | --------------------------------------------------------------- |
+| `/help`     | `/?`            | Display all available commands and argument hints               |
+| `/clear`    | `/reset`        | Clear the current chat view and initialize a fresh thread       |
+| `/approval` |                   | Switch execution safety mode (`prompt`, `auto`, `bypass`) |
+| `/diff`     |                   | Inspect unstaged git changes across the project                 |
+| `/model`    |                   | View or switch active LLM provider                              |
+| `/auth`     | `/connect`      | Check API credentials status                                    |
+| `/skills`   |                   | List active domain skills loaded from `SKILL.md`              |
+| `/mcp`      |                   | List active Model Context Protocol (MCP) servers                |
+| `/exit`     | `/quit`, `/q` | Exit LocData Code                                               |
 
 ---
 
@@ -359,11 +355,13 @@ Credentials can also be stored permanently in `~/.locdata/auth.json`.
 ## 🧪 Automated Testing & Verification
 
 Run the test suite:
+
 ```bash
 uv run pytest -v
 ```
 
 Test coverage:
+
 - ✅ `test_agent_assembly.py`: CompiledStateGraph validation and tool bindings
 - ✅ `test_approval_mode.py`: Auto-safety heuristic and command categorization
 - ✅ `test_config.py`: TOML serialization, path hierarchy, and environment merging
@@ -374,14 +372,18 @@ Test coverage:
 ## 📦 Building & Publishing
 
 Build production wheels and source distributions:
+
 ```bash
 uv run python -m build
 ```
+
 Artifacts are generated in `dist/`:
+
 - `locdata_code-0.1.0-py3-none-any.whl`
 - `locdata_code-0.1.0.tar.gz`
 
 Publish to PyPI:
+
 ```bash
 twine upload dist/*
 ```
